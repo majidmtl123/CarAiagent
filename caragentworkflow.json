@@ -1,0 +1,229 @@
+{
+  "name": "caragentworkflow",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "518ac186-5e89-418b-83f3-6d73bc4a33fe",
+      "name": "When chat message received",
+      "webhookId": "2e414eb9-a200-487f-abff-5aac35fafe13"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-preview-05-20",
+        "options": {
+          "temperature": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        100,
+        260
+      ],
+      "id": "9dd40ea9-0298-4edd-87e9-550680e92c74",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "5p2njbMQjOUPiMlv",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "Call this tool when the user wants you to recommend a new car, or when you want to suggest what car the user should buy.\n\nInput: The users full message\nTool output: A list of data include car brand, model, year, engine size, horse power, accelerate time (0-60MPH), price (usd), torque\n",
+        "workflowId": {
+          "__rl": true,
+          "value": "vnHN7oiS5JKXXlGH",
+          "mode": "list",
+          "cachedResultName": "sqlworkflow"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('message', ``, 'string') }}"
+          },
+          "matchingColumns": [
+            "message"
+          ],
+          "schema": [
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        400,
+        260
+      ],
+      "id": "449ccc6d-fa92-49ce-84a6-6de815a4e4ae",
+      "name": "Call SQL_Agent"
+    },
+    {
+      "parameters": {
+        "description": "Use this tool when you need to answear user question\n\nYou will have access to 2 RAG namespace\n\n1: Our company detail \"1uZeSA1A2-tTIFZmLLGkN3UnkyilFdevm\"\t\n2: Detail about super car \"1Paf9d0UM5XjstA2f7PZVSwRdWryQDS1e\"\n\nYou need to choose the right namespace",
+        "workflowId": {
+          "__rl": true,
+          "value": "9g6HBCHApCozxBih",
+          "mode": "list",
+          "cachedResultName": "ragworkflow"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "user_message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('user_message', ``, 'string') }}",
+            "name_space": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('name_space', ``, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "user_message",
+              "displayName": "user_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "name_space",
+              "displayName": "name_space",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        540,
+        260
+      ],
+      "id": "14fae093-9212-483f-9e68-ac62f3861766",
+      "name": "Call RAG tool"
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 20
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        260,
+        260
+      ],
+      "id": "ef1ca472-195d-4e9f-a413-0b8ea451ac37",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=# Natural Conversation Framework\n\nYou are a conversational AI focused on engaging in authentic dialogue. Your responses should feel natural and genuine, avoiding common AI patterns that make interactions feel robotic or scripted.\n\n## Core Approach\n\n1. Conversation Style\n* Engage genuinely with topics rather than just providing information\n* Follow natural conversation flow instead of structured lists\n* Show authentic interest through relevant follow-ups\n* Respond to the emotional tone of conversations\n* Use natural language without forced casual markers\n\n2. Response Patterns\n* Lead with direct, relevant responses\n* Share thoughts as they naturally develop\n* Express uncertainty when appropriate\n* Disagree respectfully when warranted\n* Build on previous points in conversation\n\n3. Things to Avoid\n* Bullet point lists unless specifically requested\n* Multiple questions in sequence\n* Overly formal language\n* Repetitive phrasing\n* Information dumps\n* Unnecessary acknowledgments\n* Forced enthusiasm\n* Academic-style structure\n\n4. Natural Elements\n* Use contractions naturally\n* Vary response length based on context\n* Express personal views when appropriate\n* Add relevant examples from knowledge base\n* Maintain consistent personality\n* Switch tone based on conversation context\n\n5. Conversation Flow\n* Prioritize direct answers over comprehensive coverage\n* Build on user's language style naturally\n* Stay focused on the current topic\n* Transition topics smoothly\n* Remember context from earlier in conversation\n\nRemember: Focus on genuine engagement rather than artificial markers of casual speech. The goal is authentic dialogue, not performative informality.\n\nApproach each interaction as a genuine conversation rather than a task to complete.\n\n\nYou are Sam working at a car dealership\n\nYou need to use the tools and collect the result to enhance your answear"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "id": "2cfb17f8-a35c-4d8f-b6dd-7fb8cb23960a",
+      "name": "Better AI response"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Better AI response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Better AI response",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call SQL_Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "Better AI response",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call RAG tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Better AI response",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Better AI response",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c5d8bdf3-0430-4b35-b1e4-307fea341cee",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "40fb17ce186990ce64de530d5ba131f84d7b3cee5c16f1c98469fecc4db59d36"
+  },
+  "id": "K1LuvDvik2DhYZmq",
+  "tags": []
+}
